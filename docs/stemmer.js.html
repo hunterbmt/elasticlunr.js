@@ -76,6 +76,7 @@
             <li><a href="document_store.js.html">document_store.js</a></li>
             <li><a href="elasticlunr.js.html">elasticlunr.js</a></li>
             <li><a href="event_emitter.js.html">event_emitter.js</a></li>
+            <li><a href="field_tokenizer.js.html">field_tokenizer.js</a></li>
             <li><a href="index.js.html">index.js</a></li>
             <li><a href="inverted_index.js.html">inverted_index.js</a></li>
             <li><a href="pipeline.js.html">pipeline.js</a></li>
@@ -88,6 +89,20 @@
           <div class="scrollspy">
             <ul class="nav nav-list bs-docs-sidenav affix-top">
               <li><a href="#stemmer"><i class="alert alert-success"></i><span>stemmer</span></a>
+              </li>
+              <li><a href="#stemmer"><i class="alert alert-info"></i><span>stemmer</span></a>
+              </li>
+              <li><a href="#r1Index"><i class="alert alert-success"></i><span>r1Index</span></a>
+              </li>
+              <li><a href="#a1Index"><i class="alert alert-success"></i><span>a1Index</span></a>
+              </li>
+              <li><a href="#if"><i class="alert alert-info"></i><span>if</span></a>
+              </li>
+              <li><a href="#a2Index"><i class="alert alert-success"></i><span>a2Index</span></a>
+              </li>
+              <li><a href="#if"><i class="alert alert-info"></i><span>if</span></a>
+              </li>
+              <li><a href="#a3Index"><i class="alert alert-success"></i><span>a3Index</span></a>
               </li>
             </ul>
           </div>
@@ -122,206 +137,215 @@
             </tbody>
           </table>
           <div class="description"><p>elasticlunr.stemmer is an english language stemmer, this is a JavaScript<br />implementation of the PorterStemmer taken from <a href="http://tartarus.org/~martin">http://tartarus.org/~martin</a></p> </div>
-          <pre><code class="language-javascript">elasticlunr.stemmer = (function(){
-  var step2list = {
-      &quot;ational&quot; : &quot;ate&quot;,
-      &quot;tional&quot; : &quot;tion&quot;,
-      &quot;enci&quot; : &quot;ence&quot;,
-      &quot;anci&quot; : &quot;ance&quot;,
-      &quot;izer&quot; : &quot;ize&quot;,
-      &quot;bli&quot; : &quot;ble&quot;,
-      &quot;alli&quot; : &quot;al&quot;,
-      &quot;entli&quot; : &quot;ent&quot;,
-      &quot;eli&quot; : &quot;e&quot;,
-      &quot;ousli&quot; : &quot;ous&quot;,
-      &quot;ization&quot; : &quot;ize&quot;,
-      &quot;ation&quot; : &quot;ate&quot;,
-      &quot;ator&quot; : &quot;ate&quot;,
-      &quot;alism&quot; : &quot;al&quot;,
-      &quot;iveness&quot; : &quot;ive&quot;,
-      &quot;fulness&quot; : &quot;ful&quot;,
-      &quot;ousness&quot; : &quot;ous&quot;,
-      &quot;aliti&quot; : &quot;al&quot;,
-      &quot;iviti&quot; : &quot;ive&quot;,
-      &quot;biliti&quot; : &quot;ble&quot;,
-      &quot;logi&quot; : &quot;log&quot;
-    },
+          <pre><code class="language-javascript">elasticlunr.stemmer = (function(){</code></pre>
+          <section id="stemmer">
+            <h1>stemmer</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">function</div><span>stemmer()</span>
+            </p>
+          </section>
+          <div class="description"><p>German includes the following accented forms,<br />  ä   ö   ü<br />  and a special letter, ß, equivalent to double s.<br />  The following letters are vowels:<br />  a   e   i   o   u   y   ä   ö   ü</p> </div>
+          <pre><code class="language-javascript">function stemmer(word) {</code></pre>
+          <div class="description"><p>Put u and y between vowels into upper case</p> </div>
+          <pre><code class="language-javascript">word = word.replace(/([aeiouyäöü])u([aeiouyäöü])/g, '$1U$2');
+word = word.replace(/([aeiouyäöü])y([aeiouyäöü])/g, '$1Y$2');</code></pre>
+          <div class="description"><p>and then do the following mapping,<br />    (a) replace ß with ss,</p> </div>
+          <pre><code class="language-javascript">word = word.replace(/ß/g, 'ss');</code></pre>
+          <section id="r1Index">
+            <h1>r1Index</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-success radius ctx-type">declaration</div><span>r1Index</span>
+            </p>
+          </section>
+          <div class="description"><p>R1 and R2 are first set up in the standard way (see the note on R1 and R2), but then R1 is adjusted so that the region before it contains at least 3 letters.<br />    R1 is the region after the first non-vowel following a vowel, or is the null region at the end of the word if there is no such non-vowel.<br />    R2 is the region after the first non-vowel following a vowel in R1, or is the null region at the end of the word if there is no such non-vowel.</p> </div>
+          <pre><code class="language-javascript">var r1Index = word.search(/[aeiouyäöü][^aeiouyäöü]/);
+var r1 = '';
+if (r1Index != -1) {
+  r1Index += 2;
+  r1 = word.substring(r1Index);
+}
 
-    step3list = {
-      &quot;icate&quot; : &quot;ic&quot;,
-      &quot;ative&quot; : &quot;&quot;,
-      &quot;alize&quot; : &quot;al&quot;,
-      &quot;iciti&quot; : &quot;ic&quot;,
-      &quot;ical&quot; : &quot;ic&quot;,
-      &quot;ful&quot; : &quot;&quot;,
-      &quot;ness&quot; : &quot;&quot;
-    },
+var r2Index = -1;
+var r2 = '';
 
-    c = &quot;[^aeiou]&quot;,          // consonant
-    v = &quot;[aeiouy]&quot;,          // vowel
-    C = c + &quot;[^aeiouy]*&quot;,    // consonant sequence
-    V = v + &quot;[aeiou]*&quot;,      // vowel sequence
+if (r1Index != -1) {
+  r2Index = r1.search(/[aeiouyäöü][^aeiouyäöü]/);
+  if (r2Index != -1) {
+    r2Index += 2;
+    r2 = r1.substring(r2Index);
+    r2Index += r1Index;
+  } else {
+    r2 = '';
+  }
+}
 
-    mgr0 = &quot;^(&quot; + C + &quot;)?&quot; + V + C,               // [C]VC... is m&gt;0
-    meq1 = &quot;^(&quot; + C + &quot;)?&quot; + V + C + &quot;(&quot; + V + &quot;)?$&quot;,  // [C]VC[V] is m=1
-    mgr1 = &quot;^(&quot; + C + &quot;)?&quot; + V + C + V + C,       // [C]VCVC... is m&gt;1
-    s_v = &quot;^(&quot; + C + &quot;)?&quot; + v;                   // vowel in stem
-
-  var re_mgr0 = new RegExp(mgr0);
-  var re_mgr1 = new RegExp(mgr1);
-  var re_meq1 = new RegExp(meq1);
-  var re_s_v = new RegExp(s_v);
-
-  var re_1a = /^(.+?)(ss|i)es$/;
-  var re2_1a = /^(.+?)([^s])s$/;
-  var re_1b = /^(.+?)eed$/;
-  var re2_1b = /^(.+?)(ed|ing)$/;
-  var re_1b_2 = /.$/;
-  var re2_1b_2 = /(at|bl|iz)$/;
-  var re3_1b_2 = new RegExp(&quot;([^aeiouylsz])\\1$&quot;);
-  var re4_1b_2 = new RegExp(&quot;^&quot; + C + v + &quot;[^aeiouwxy]$&quot;);
-
-  var re_1c = /^(.+?[^aeiou])y$/;
-  var re_2 = /^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$/;
-
-  var re_3 = /^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$/;
-
-  var re_4 = /^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$/;
-  var re2_4 = /^(.+?)(s|t)(ion)$/;
-
-  var re_5 = /^(.+?)e$/;
-  var re_5_1 = /ll$/;
-  var re3_5 = new RegExp(&quot;^&quot; + C + v + &quot;[^aeiouwxy]$&quot;);
-
-  var porterStemmer = function porterStemmer(w) {
-    var   stem,
-      suffix,
-      firstch,
-      re,
-      re2,
-      re3,
-      re4;
-
-    if (w.length &lt; 3) { return w; }
-
-    firstch = w.substr(0,1);
-    if (firstch == &quot;y&quot;) {
-      w = firstch.toUpperCase() + w.substr(1);
-    }
-
-    // Step 1a
-    re = re_1a
-    re2 = re2_1a;
-
-    if (re.test(w)) { w = w.replace(re,&quot;$1$2&quot;); }
-    else if (re2.test(w)) { w = w.replace(re2,&quot;$1$2&quot;); }
-
-    // Step 1b
-    re = re_1b;
-    re2 = re2_1b;
-    if (re.test(w)) {
-      var fp = re.exec(w);
-      re = re_mgr0;
-      if (re.test(fp[1])) {
-        re = re_1b_2;
-        w = w.replace(re,&quot;&quot;);
-      }
-    } else if (re2.test(w)) {
-      var fp = re2.exec(w);
-      stem = fp[1];
-      re2 = re_s_v;
-      if (re2.test(stem)) {
-        w = stem;
-        re2 = re2_1b_2;
-        re3 = re3_1b_2;
-        re4 = re4_1b_2;
-        if (re2.test(w)) {  w = w + &quot;e&quot;; }
-        else if (re3.test(w)) { re = re_1b_2; w = w.replace(re,&quot;&quot;); }
-        else if (re4.test(w)) { w = w + &quot;e&quot;; }
+if (r1Index != -1 &amp;&amp; r1Index &lt; 3) {
+  r1Index = 3;
+  r1 = word.substring(r1Index);
+}</code></pre>
+          <div class="description"><p>Define a valid s-ending as one of b, d, f, g, h, k, l, m, n, r or t.<br />    Define a valid st-ending as the same list, excluding letter r.</p> </div>
+          <div class="description"><p>Do each of steps 1, 2 and 3.</p> </div>
+          <section id="a1Index">
+            <h1>a1Index</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-success radius ctx-type">declaration</div><span>a1Index</span>
+            </p>
+          </section>
+          <div class="description"><p>Step 1:<br />    Search for the longest among the following suffixes,<br />    (a) em   ern   er<br />    (b) e   en   es<br />    (c) s (preceded by a valid s-ending)</p> </div>
+          <pre><code class="language-javascript">var a1Index = word.search(/(em|ern|er)$/g);
+var b1Index = word.search(/(e|en|es)$/g);
+var c1Index = word.search(/([bdfghklmnrt]s)$/g);
+if (c1Index != -1) {
+  c1Index++;
+}
+var index1 = 10000;
+var optionUsed1 = '';
+if (a1Index != -1 &amp;&amp; a1Index &lt; index1) {
+  optionUsed1 = 'a';
+  index1 = a1Index;
+}
+if (b1Index != -1 &amp;&amp; b1Index &lt; index1) {
+  optionUsed1 = 'b';
+  index1 = b1Index;
+}
+if (c1Index != -1 &amp;&amp; c1Index &lt; index1) {
+  optionUsed1 = 'c';
+  index1 = c1Index;
+}</code></pre>
+          <section id="if">
+            <h1>if</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>if()</span>
+            </p>
+          </section>
+          <div class="description"><p>and delete if in R1. (Of course the letter of the valid s-ending is not necessarily in R1.) If an ending of group (b) is deleted, and the ending is preceded by niss, delete the final s.<br />    (For example, äckern -&gt; äck, ackers -&gt; acker, armes -&gt; arm, bedürfnissen -&gt; bedürfnis)</p> </div>
+          <pre><code class="language-javascript">if (index1 != 10000 &amp;&amp; r1Index != -1) {
+  if (index1 &gt;= r1Index) {
+    word = word.substring(0, index1);
+    if (optionUsed1 == 'b') {
+      if (word.search(/niss$/) != -1) {
+        word = word.substring(0, word.length -1);
       }
     }
+  }
+}</code></pre>
+          <section id="a2Index">
+            <h1>a2Index</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-success radius ctx-type">declaration</div><span>a2Index</span>
+            </p>
+          </section>
+          <div class="description"><p>Step 2:<br />    Search for the longest among the following suffixes,<br />    (a) en   er   est<br />    (b) st (preceded by a valid st-ending, itself preceded by at least 3 letters)</p> </div>
+          <pre><code class="language-javascript">var a2Index = word.search(/(en|er|est)$/g);
+var b2Index = word.search(/(.{3}[bdfghklmnt]st)$/g);
+if (b2Index != -1) {
+  b2Index += 4;
+}
 
-    // Step 1c - replace suffix y or Y by i if preceded by a non-vowel which is not the first letter of the word (so cry -&gt; cri, by -&gt; by, say -&gt; say)
-    re = re_1c;
-    if (re.test(w)) {
-      var fp = re.exec(w);
-      stem = fp[1];
-      w = stem + &quot;i&quot;;
-    }
+var index2 = 10000;
+var optionUsed2 = '';
+if (a2Index != -1 &amp;&amp; a2Index &lt; index2) {
+  optionUsed2 = 'a';
+  index2 = a2Index;
+}
+if (b2Index != -1 &amp;&amp; b2Index &lt; index2) {
+  optionUsed2 = 'b';
+  index2 = b2Index;
+}</code></pre>
+          <section id="if">
+            <h1>if</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>if()</span>
+            </p>
+          </section>
+          <div class="description"><p>and delete if in R1.<br />    (For example, derbsten -&gt; derbst by step 1, and derbst -&gt; derb by step 2, since b is a valid st-ending, and is preceded by just 3 letters)</p> </div>
+          <pre><code class="language-javascript">if (index2 != 10000 &amp;&amp; r1Index != -1) {
+  if (index2 &gt;= r1Index) {
+    word = word.substring(0, index2);
+  }
+}</code></pre>
+          <section id="a3Index">
+            <h1>a3Index</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-success radius ctx-type">declaration</div><span>a3Index</span>
+            </p>
+          </section>
+          <div class="description"><p>Step 3: d-suffixes (*)<br />    Search for the longest among the following suffixes, and perform the action indicated.<br />    end   ung<br />        delete if in R2<br />        if preceded by ig, delete if in R2 and not preceded by e<br />    ig   ik   isch<br />        delete if in R2 and not preceded by e<br />    lich   heit<br />        delete if in R2<br />        if preceded by er or en, delete if in R1<br />    keit<br />        delete if in R2<br />        if preceded by lich or ig, delete if in R2</p> </div>
+          <pre><code class="language-javascript">var a3Index = word.search(/(end|ung)$/g);
+var b3Index = word.search(/[^e](ig|ik|isch)$/g);
+var c3Index = word.search(/(lich|heit)$/g);
+var d3Index = word.search(/(keit)$/g);
+if (b3Index != -1) {
+  b3Index ++;
+}
 
-    // Step 2
-    re = re_2;
-    if (re.test(w)) {
-      var fp = re.exec(w);
-      stem = fp[1];
-      suffix = fp[2];
-      re = re_mgr0;
-      if (re.test(stem)) {
-        w = stem + step2list[suffix];
+var index3 = 10000;
+var optionUsed3 = '';
+if (a3Index != -1 &amp;&amp; a3Index &lt; index3) {
+  optionUsed3 = 'a';
+  index3 = a3Index;
+}
+if (b3Index != -1 &amp;&amp; b3Index &lt; index3) {
+  optionUsed3 = 'b';
+  index3 = b3Index;
+}
+if (c3Index != -1 &amp;&amp; c3Index &lt; index3) {
+  optionUsed3 = 'c';
+  index3 = c3Index;
+}
+if (d3Index != -1 &amp;&amp; d3Index &lt; index3) {
+  optionUsed3 = 'd';
+  index3 = d3Index;
+}
+
+if (index3 != 10000 &amp;&amp; r2Index != -1) {
+  if (index3 &gt;= r2Index) {
+    word = word.substring(0, index3);
+    var optionIndex = -1;
+    var optionSubsrt = '';
+    if (optionUsed3 == 'a') {
+      optionIndex = word.search(/[^e](ig)$/);
+      if (optionIndex != -1) {
+        optionIndex++;
+        if (optionIndex &gt;= r2Index) {
+          word = word.substring(0, optionIndex);
+        }
+      }
+    } else if (optionUsed3 == 'c') {
+      optionIndex = word.search(/(er|en)$/);
+      if (optionIndex != -1) {
+        if (optionIndex &gt;= r1Index) {
+          word = word.substring(0, optionIndex);
+        }
+      }
+    } else if (optionUsed3 == 'd') {
+      optionIndex = word.search(/(lich|ig)$/);
+      if (optionIndex != -1) {
+        if (optionIndex &gt;= r2Index) {
+          word = word.substring(0, optionIndex);
+        }
       }
     }
+  }
+}</code></pre>
+          <div class="description"><p>Finally,<br />    turn U and Y back into lower case, and remove the umlaut accent from a, o and u.</p> </div>
+          <pre><code class="language-javascript">word = word.replace(/U/g, 'u');
+word = word.replace(/Y/g, 'y');
+word = word.replace(/ä/g, 'a');
+word = word.replace(/ö/g, 'o');
+word = word.replace(/ü/g, 'u');
 
-    // Step 3
-    re = re_3;
-    if (re.test(w)) {
-      var fp = re.exec(w);
-      stem = fp[1];
-      suffix = fp[2];
-      re = re_mgr0;
-      if (re.test(stem)) {
-        w = stem + step3list[suffix];
-      }
-    }
+return word;
+  }
 
-    // Step 4
-    re = re_4;
-    re2 = re2_4;
-    if (re.test(w)) {
-      var fp = re.exec(w);
-      stem = fp[1];
-      re = re_mgr1;
-      if (re.test(stem)) {
-        w = stem;
-      }
-    } else if (re2.test(w)) {
-      var fp = re2.exec(w);
-      stem = fp[1] + fp[2];
-      re2 = re_mgr1;
-      if (re2.test(stem)) {
-        w = stem;
-      }
-    }
-
-    // Step 5
-    re = re_5;
-    if (re.test(w)) {
-      var fp = re.exec(w);
-      stem = fp[1];
-      re = re_mgr1;
-      re2 = re_meq1;
-      re3 = re3_5;
-      if (re.test(stem) || (re2.test(stem) &amp;&amp; !(re3.test(stem)))) {
-        w = stem;
-      }
-    }
-
-    re = re_5_1;
-    re2 = re_mgr1;
-    if (re.test(w) &amp;&amp; re2.test(w)) {
-      re = re_1b_2;
-      w = w.replace(re,&quot;&quot;);
-    }
-
-    // and turn initial Y back to y
-
-    if (firstch == &quot;y&quot;) {
-      w = firstch.toLowerCase() + w.substr(1);
-    }
-
-    return w;
-  };
-
-  return porterStemmer;
+  return stemmer;
 })();
 
 elasticlunr.Pipeline.registerFunction(elasticlunr.stemmer, 'stemmer');</code></pre>

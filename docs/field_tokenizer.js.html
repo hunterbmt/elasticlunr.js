@@ -76,7 +76,7 @@
             <li><a href="document_store.js.html">document_store.js</a></li>
             <li><a href="elasticlunr.js.html">elasticlunr.js</a></li>
             <li><a href="event_emitter.js.html">event_emitter.js</a></li>
-            <li><a href="field_tokenizer.js.html">field_tokenizer.js</a></li>
+            <li class="active"><a href="field_tokenizer.js.html">field_tokenizer.js</a></li>
             <li><a href="index.js.html">index.js</a></li>
             <li><a href="inverted_index.js.html">inverted_index.js</a></li>
             <li><a href="pipeline.js.html">pipeline.js</a></li>
@@ -84,96 +84,59 @@
             <li><a href="stop_word_filter.js.html">stop_word_filter.js</a></li>
             <li><a href="tokenizer.js.html">tokenizer.js</a></li>
             <li><a href="trimmer.js.html">trimmer.js</a></li>
-            <li class="active"><a href="utils.js.html">utils.js</a></li>
+            <li><a href="utils.js.html">utils.js</a></li>
           </ul>
           <div class="scrollspy">
             <ul class="nav nav-list bs-docs-sidenav affix-top">
-              <li><a href="#utils"><i class="alert alert-success"></i><span>utils</span></a>
-              </li>
-              <li><a href="#warn"><i class="alert alert-success"></i><span>warn</span></a>
-              </li>
-              <li><a href="#toString"><i class="alert alert-info"></i><span>toString</span></a>
+              <li><a href="#FieldTokenizer"><i class="alert alert-info"></i><span>FieldTokenizer</span></a>
               </li>
             </ul>
           </div>
         </div>
         <div class="span9">
-          <section id="utils">
-            <h1>utils</h1>
+          <section id="FieldTokenizer">
+            <h1>FieldTokenizer</h1>
             <h5 class="subheader"></h5>
             <p>
-              <div class="label label-success radius ctx-type">property</div><span>elasticlunr.utils</span>
+              <div class="label label-info radius ctx-type">method</div><span>elasticlunr.FieldTokenizer()</span>
             </p>
           </section>
-          <div class="description"><p>A namespace containing utils for the rest of the elasticlunr library</p> </div>
-          <pre><code class="language-javascript">elasticlunr.utils = {};</code></pre>
-          <section id="warn">
-            <h1>warn</h1>
-            <h5 class="subheader"></h5>
-            <p>
-              <div class="label label-success radius ctx-type">property</div><span>elasticlunr.utils.warn</span>
-            </p>
-          </section>
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th style="width:20%">Option name</th>
-                <th style="width:20%">Type</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>message</td>
-                <td>String</td>
-                <td><p>The message to be printed.</p></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="description"><p>Print a warning message to the console.</p> </div>
-          <pre><code class="language-javascript">elasticlunr.utils.warn = (function (global) {
-  return function (message) {
-    if (global.console &amp;&amp; console.warn) {
-      console.warn(message);
-    }
-  };
-})(this);</code></pre>
-          <section id="toString">
-            <h1>toString</h1>
-            <h5 class="subheader"></h5>
-            <p>
-              <div class="label label-info radius ctx-type">method</div><span>elasticlunr.utils.toString()</span>
-            </p>
-          </section>
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th style="width:20%">Option name</th>
-                <th style="width:20%">Type</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>obj</td>
-                <td>object</td>
-                <td><p>The object to convert to a string.</p></td>
-              </tr>
-              <tr>
-                <td>return</td>
-                <td>String</td>
-                <td><p>string representation of the passed object.</p></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="description"><p>Convert an object to string.</p><p>In the case of <code>null</code> and <code>undefined</code> the function returns<br />an empty string, in all other cases the result of calling<br /><code>toString</code> on the passed object is returned.</p> </div>
-          <pre><code class="language-javascript">elasticlunr.utils.toString = function (obj) {
-  if (obj === void 0 || obj === null) {
-    return &quot;&quot;;
-  }
+          <div class="description"> </div>
+          <pre><code class="language-javascript">elasticlunr.FieldTokenizer = function () {
+  this._tokenizer = {};
+};
 
-  return obj.toString();
-};</code></pre>
+elasticlunr.FieldTokenizer.load = function() {
+  return new elasticlunr.FieldTokenizer;
+}
+
+elasticlunr.FieldTokenizer.prototype.tokenizer = function (str, field) {
+  var tokenizer = this.getFieldTokenizer(field);
+  if (tokenizer) {
+    return tokernizer(str);
+  }
+  return elasticlunr.tokenizer(str);
+};
+
+elasticlunr.FieldTokenizer.prototype.getFieldTokenizer = function(field) {
+  var tokenizer = this._tokenizer[field];
+  if (tokenizer &amp;&amp; typeof tokenizer === 'function') {
+    return tokenizer;
+  }
+  return undefined;
+}
+
+elasticlunr.FieldTokenizer.prototype.registerFieldTokenizer = function(tokenizer, field) {
+  var tokenizer = this.getFieldTokenizer(field);
+  if (tokenizer) {
+    elasticlunr.utils.warn('Tokenizer for field &quot;' + field +'&quot; is already registered.\n', tokenizer);
+  }
+  this._tokenizer[field] = tokenizer;
+}
+
+elasticlunr.FieldTokenizer.prototype.unregisterFieldTokenizer = function(tokenizer, field) {
+  this._tokenizer[field] = undefined;
+}</code></pre>
         </div>
       </div>
     </div>
