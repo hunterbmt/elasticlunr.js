@@ -1,5 +1,5 @@
 {
-  "name": "elasticlunr",
+  "name": "egopulse-elasticlunr",
   "description": "Lightweight full-text search engine in Javascript for browser search and offline search.",
   "version": "0.0.9",
   "author": "Wei Song",
